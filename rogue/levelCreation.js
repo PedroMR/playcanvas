@@ -9,7 +9,11 @@ pc.script.create('levelCreation', function (context) {
     LevelCreation.prototype = {
         initialize: function () {
             rootWall = context.root.findByName(ROOT_WALL_NAME);
-            this.addWall(-8, 2, 5, true);
+            rootWall.visible = false;
+            for (var i=-50; i <= 20; i+=10 )
+                this.addWall(-10, i, 5, true);
+            for (var x=-10; x <= 30; x+=10 )
+                this.addWall(x, 20, 5, false);
         },
         
         addWall: function(x, z, length, vertical) {
