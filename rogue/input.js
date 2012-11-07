@@ -26,7 +26,7 @@ pc.script.create('input', function (context) {
                 dx += 1;
             }
             
-            var speed = 15;
+            var speed = 50;
             
             camera.translate(dx*dt*speed, 0, dz*dt*speed);
         }
