@@ -7,8 +7,8 @@ pc.script.create('levelCreation', function (context) {
     var rootTileContainer;
     var CELL_TO_WORLD = 10;
     var level;
-    var ROWS = 20;
-    var COLS = 20;
+    var ROWS = 30;
+    var COLS = 30;
     var UNDEFINED = 1;
     var HOLLOW = 0;
     var BLOCKED = 2;
@@ -106,27 +106,35 @@ pc.script.create('levelCreation', function (context) {
        		
        		this.generateRandomRoom(room);
    			this.carveRoom(room[0], room[1], room[2], room[3]);
+			if (this.findWallToBreak(wallToBreak))
+				this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(3, 6));
        		
-        	for (var tries=0; tries < 9999; tries++) {
-        		this.generateRandomRoom(room);
-        		if (this.canFitRoom(room[0], room[1], room[2], room[3])) {
-        			this.carveRoom(room[0], room[1], room[2], room[3]);
-        		
+       		var nRooms = 1;
+       		
+        	for (var tries=0; tries < 999999; tries++) {
+        		if (pc.math.random(0,1) > 0.2) {
+        			for (var i=0; i < 9999; i++) {
+						this.generateRandomRoom(room);
+						if (this.canFitRoom(room[0], room[1], room[2], room[3])) {
+							this.carveRoom(room[0], room[1], room[2], room[3]);
+							nRooms++;
+							break;
+						}
+					}
+					if (nRooms >= 6)
+						break;
+        		} else {
 					if (this.findWallToBreak(wallToBreak))
-						this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(3, 6));
+						this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(4, 8));
 					else
 						break;
         		}
         	}
-        	
-//        	this.carveRoom(5, 12, 7, 4);
-//         	this.carveRoom(9, 4, 4, 5);
-//         	this.carveCorridor(10, 11, 5);
         },
         
         generateRandomRoom: function(room) {
-        	room[0] = this.randomInt(0, COLS-2);
-        	room[1] = this.randomInt(0, ROWS-2);
+        	room[0] = this.randomInt(0, COLS-5);
+        	room[1] = this.randomInt(0, ROWS-5);
         	room[2] = this.randomInt(4, 7);
         	room[3] = this.randomInt(4, 7);
         },
@@ -139,23 +147,23 @@ pc.script.create('levelCreation', function (context) {
         	var entrances = 0;
         	for (var z = z0; z < z0+dz; z++) {
 	        	for (var x = x0; x < x0+dx; x++) {
-	        		if (this.getCellType(x, z) == BLOCKED)
+	        		if (this.getCellType(x, z) != UNDEFINED)
 	        			return false;
 	        	}
 	        }
-        	for (var z = z0-1; z < z0+dz+2; z++) {
-	        	entrances += this.getCellType(x0, z) == HOLLOW ? 1 : 0;
+        	for (var z = z0; z < z0+dz; z++) {
+	        	entrances += this.getCellType(x0-1, z) == HOLLOW ? 1 : 0;
 	        	entrances += this.getCellType(x0+dx, z) == HOLLOW ? 1 : 0;
         	}
 	    	for (var x = x0; x < x0+dx; x++) {
-	        	entrances += this.getCellType(x0, z) == HOLLOW ? 1 : 0;
-	        	entrances += this.getCellType(x0+dx, z) == HOLLOW ? 1 : 0;
+	        	entrances += this.getCellType(x, z0-1) == HOLLOW ? 1 : 0;
+	        	entrances += this.getCellType(x, z0+dz) == HOLLOW ? 1 : 0;
         	}
         	return (entrances > 0);
         },
         
         findWallToBreak: function(pos) {
-        	for (var i=0; i < 9999; i++) {
+        	for (var i=0; i < 999999; i++) {
         		pos[0] = this.randomInt(0, COLS);
         		pos[1] = this.randomInt(0, ROWS);
         		
