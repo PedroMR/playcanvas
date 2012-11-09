@@ -37,23 +37,20 @@ pc.script.create('levelCreation', function (context) {
             rootWallContainer = context.root.findByName(ROOT_WALL_CONTAINER);
             rootTile = context.root.findByName('Tile0');
             rootTileContainer = context.root.findByName('Tiles');
-            this.addWall(-2, 0, 1, false);
-            this.addWall(-2, 2, 2, true);
-            this.addWall(-2, 2, 2, false);
             
             this.createMaze();
             
             for (var z=0; z < COLS; z++) {
 	            for (var x=0; x < COLS; x++) {
-	            	if (level[z][x] == HOLLOW) {
+	            	if (this.getCellType(x, z) == HOLLOW) {
 		            	this.addTile(x, z, level[z][x]);
-		            	if (level[z][x+1] != HOLLOW)
+		            	if (this.getCellType(x+1, z) != HOLLOW)
 		            		this.addWall(x+1, z+1, 1, true);
-		            	if (level[z][x-1] != HOLLOW)
+		            	if (this.getCellType(x-1, z) != HOLLOW)
 		            		this.addWall(x, z+1, 1, true);
-		            	if (level[z-1][x] != HOLLOW)
+		            	if (this.getCellType(x, z-1) != HOLLOW)
 		            		this.addWall(x, z, 1, false);
-		            	if (level[z+1][x] != HOLLOW)
+		            	if (this.getCellType(x, z+1) != HOLLOW)
 		            		this.addWall(x, z+1, 1, false);
 		            }
 	            }
@@ -104,8 +101,88 @@ pc.script.create('levelCreation', function (context) {
 //         	var spawn = pc.math.vec2.create(sx,sz);
 //         	level[sz][sx] = HOLLOW;
         	
-        	this.carveRoom(5, 12, 6, 4);
-        	this.carveRoom(10, 4, 4, 5);
+        	var room = pc.math.vec4.create();
+       		var wallToBreak = pc.math.vec2.create();
+       		
+       		this.generateRandomRoom(room);
+   			this.carveRoom(room[0], room[1], room[2], room[3]);
+       		
+        	for (var tries=0; tries < 9999; tries++) {
+        		this.generateRandomRoom(room);
+        		if (this.canFitRoom(room[0], room[1], room[2], room[3])) {
+        			this.carveRoom(room[0], room[1], room[2], room[3]);
+        		
+					if (this.findWallToBreak(wallToBreak))
+						this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(3, 6));
+					else
+						break;
+        		}
+        	}
+        	
+//        	this.carveRoom(5, 12, 7, 4);
+//         	this.carveRoom(9, 4, 4, 5);
+//         	this.carveCorridor(10, 11, 5);
+        },
+        
+        generateRandomRoom: function(room) {
+        	room[0] = this.randomInt(0, COLS-2);
+        	room[1] = this.randomInt(0, ROWS-2);
+        	room[2] = this.randomInt(4, 7);
+        	room[3] = this.randomInt(4, 7);
+        },
+        
+        randomInt: function(min, max) {
+        	return Math.floor(pc.math.random(min, max));
+        },
+        
+        canFitRoom: function(x0, z0, dx, dz) {
+        	var entrances = 0;
+        	for (var z = z0; z < z0+dz; z++) {
+	        	for (var x = x0; x < x0+dx; x++) {
+	        		if (this.getCellType(x, z) == BLOCKED)
+	        			return false;
+	        	}
+	        }
+        	for (var z = z0-1; z < z0+dz+2; z++) {
+	        	entrances += this.getCellType(x0, z) == HOLLOW ? 1 : 0;
+	        	entrances += this.getCellType(x0+dx, z) == HOLLOW ? 1 : 0;
+        	}
+	    	for (var x = x0; x < x0+dx; x++) {
+	        	entrances += this.getCellType(x0, z) == HOLLOW ? 1 : 0;
+	        	entrances += this.getCellType(x0+dx, z) == HOLLOW ? 1 : 0;
+        	}
+        	return (entrances > 0);
+        },
+        
+        findWallToBreak: function(pos) {
+        	for (var i=0; i < 9999; i++) {
+        		pos[0] = this.randomInt(0, COLS);
+        		pos[1] = this.randomInt(0, ROWS);
+        		
+        		if (this.getCellType(pos[0], pos[1]) != HOLLOW) {
+            		var spaceAround = 0;
+    	    		spaceAround += this.getCellType(pos[0]-1,pos[1]) == HOLLOW ? 1 : 0;
+    	    		spaceAround += this.getCellType(pos[0]+1,pos[1]) == HOLLOW ? 1 : 0;
+    	    		spaceAround += this.getCellType(pos[0],pos[1]-1) == HOLLOW ? 1 : 0;
+    	    		spaceAround += this.getCellType(pos[0],pos[1]+1) == HOLLOW ? 1 : 0;
+    	    		if (spaceAround == 1)
+    	    			return true;
+    	    	}
+        	}
+        	return false;
+        },
+        
+        getCellType: function(x, z) {
+        	if (z < 0 || z >= ROWS || x < 0 || x >= COLS)
+        		return BLOCKED;
+        	return level[z][x];
+        },
+        
+        setCellType: function(x, z, type) {
+        	if (z < 0 || z >= ROWS || x < 0 || x >= COLS)
+        		return;
+        	else
+	        	level[z][x] = type;
         },
         
         carveRoom: function(x0, z0, dx, dz) {
@@ -119,11 +196,29 @@ pc.script.create('levelCreation', function (context) {
         fillArea: function(x0, z0, dx, dz, type, ifUndefined) {
         	for (var z = z0; z < z0+dz; z++) {
 	        	for (var x = x0; x < x0+dx; x++) {
-	        		if (!ifUndefined || level[z][x] == UNDEFINED)
-		        		level[z][x] = type;
+	        		if (!ifUndefined || this.getCellType(x, z) == UNDEFINED)
+		        		this.setCellType(x, z, type);
 	        	}        	
         	}
         },
+        
+        carveCorridor: function(x0, z0, length) {
+        	if (this.getCellType(x0, z0) == HOLLOW) return;
+        	
+        	// find empty space around it to determine direction
+        	var dx = 0, dz = 0;
+        	if (this.getCellType(x0, z0-1) == HOLLOW) dz = 1;
+        	else if (this.getCellType(x0, z0+1) == HOLLOW) dz = -1;
+        	else if (this.getCellType(x0-1, z0) == HOLLOW) dx = 1;
+        	else if (this.getCellType(x0+1, z0) == HOLLOW) dx = -1;
+        	else return;
+        	
+        	for (var i=0; i < length; i++) {
+        		if (this.getCellType(x0+i*dx, z0+i*dz) == HOLLOW)
+        			break;
+        		this.setCellType(x0+i*dx, z0+i*dz, HOLLOW);
+        	}
+        },        
     };
 
    return LevelCreation;
