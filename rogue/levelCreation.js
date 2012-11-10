@@ -27,6 +27,9 @@ pc.script.create('levelCreation', function (context) {
 		if (original.primitive) {
 			context.systems.primitive.addComponent(newEntity, original.primitive.data);
 		}
+		if (original.script) {
+			context.systems.script.addComponent(newEntity, original.script.data);
+		}
 		
 		return newEntity;
     };
@@ -40,7 +43,7 @@ pc.script.create('levelCreation', function (context) {
             
             this.createMaze();
             
-            for (var z=0; z < COLS; z++) {
+            for (var z=0; z < ROWS; z++) {
 	            for (var x=0; x < COLS; x++) {
 	            	if (this.getCellType(x, z) == HOLLOW) {
 		            	this.addTile(x, z, level[z][x]);
@@ -110,6 +113,7 @@ pc.script.create('levelCreation', function (context) {
 				this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(3, 6));
        		
        		var nRooms = 1;
+       		var maxRooms = 8;
        		
         	for (var tries=0; tries < 999999; tries++) {
         		if (pc.math.random(0,1) > 0.2) {
@@ -121,7 +125,7 @@ pc.script.create('levelCreation', function (context) {
 							break;
 						}
 					}
-					if (nRooms >= 6)
+					if (nRooms >= maxRooms)
 						break;
         		} else {
 					if (this.findWallToBreak(wallToBreak))
@@ -226,7 +230,18 @@ pc.script.create('levelCreation', function (context) {
         			break;
         		this.setCellType(x0+i*dx, z0+i*dz, HOLLOW);
         	}
-        },        
+        },   
+        
+        getRandomEmptyTile: function(pos) {
+            for (var i=0; i < 999999; i++) {
+        		pos[0] = this.randomInt(0, COLS);
+        		pos[1] = this.randomInt(0, ROWS);
+        		
+        		if (this.getCellType(pos[0], pos[1]) == HOLLOW)
+        			return true;
+        	}
+        	return false;
+        },     
     };
 
    return LevelCreation;
