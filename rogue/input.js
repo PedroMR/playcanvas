@@ -1,5 +1,6 @@
 pc.script.create('input', function (context) {
     var camera;
+    var resettable = false;
     
     var Input = function (entity) {
         this.entity = entity;
@@ -29,6 +30,14 @@ pc.script.create('input', function (context) {
             var speed = 50;
             
             camera.translate(dx*dt*speed, 0, dz*dt*speed);
+            
+            if (context.keyboard.isPressed('N')) {
+            	if (resettable)
+			        context.systems.script.broadcast('levelCreation', 'resetMaze', null);
+		        resettable = false;
+		    } else {
+			    resettable = true;
+		    }
         }
     };
 
