@@ -32,6 +32,20 @@
 	        	this.cells[z][x] = type;
         },
         
+        getRandomTile: function(pos) {
+			pos[0] = Util.randomInt(0, this.cols);
+			pos[1] = Util.randomInt(0, this.rows);
+        },
+        
+        getRandomEmptyTile: function(pos) {
+            for (var i=0; i < 999999; i++) {
+            	this.getRandomTile(pos);
+        		if (this.getCellType(pos[0], pos[1]) == HOLLOW)
+        			return true;
+        	}
+        	return false;
+        },     
+
 	};
 	
 // 	return Level;

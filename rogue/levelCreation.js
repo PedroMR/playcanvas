@@ -17,6 +17,10 @@ pc.script.create('levelCreation', function (context) {
         this.entity = entity;
     };
     
+	var convertCellToWorld = function(col, row) {
+		return pc.math.vec3.create(col*CELL_TO_WORLD, 0, row*CELL_TO_WORLD);
+	};
+        
     var cloneEntity = function (original) {
     	var newEntity = new pc.fw.Entity();
     	
@@ -75,21 +79,33 @@ pc.script.create('levelCreation', function (context) {
             
         },
         
+        getLevel:function() {
+			return level;
+        },
+        
         addTile: function(x, z, height) {
         	var newTile = cloneEntity(rootTile);
             var rootY = rootTile.getLocalPosition()[1];
             var rootScale = rootTile.getLocalScale();
-        	newTile.setLocalPosition((x-COLS/2)*CELL_TO_WORLD, rootY, (z-ROWS/2)*CELL_TO_WORLD);
-        	newTile.translateLocal(rootScale[0]/2-CELL_TO_WORLD/2, height, rootScale[2]/2-CELL_TO_WORLD/2);
+            this.placeAtCell(newTile, x, z);
             rootTileContainer.addChild(newTile);
 
         },
+        
+        placeAtCell: function(entity, col, row) {
+        	entity.setLocalPosition(convertCellToWorld(col-COLS/2, row-ROWS/2));
+        },
+
+		getLevelCreation: function() {
+			return this;
+		},
+                
         addWall: function(x, z, length, vertical) {
             var newWall = cloneEntity(rootWall);
  
             var rootY = rootWall.getLocalPosition()[1];
             var rootScale = rootWall.getLocalScale();
-            newWall.setLocalPosition((x-COLS/2-0.5)*CELL_TO_WORLD, rootY, (z-ROWS/2-0.5)*CELL_TO_WORLD);
+            this.placeAtCell(newWall, x-0.5, z-0.5);
             if (vertical)
                 newWall.rotateLocal(0, 90, 0);
             if (length > 1) {
@@ -114,7 +130,7 @@ pc.script.create('levelCreation', function (context) {
        		this.generateRandomRoom(room);
    			this.carveRoom(room[0], room[1], room[2], room[3]);
 			if (this.findWallToBreak(wallToBreak))
-				this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(3, 6));
+				this.carveCorridor(wallToBreak[0], wallToBreak[1], Util.randomInt(3, 6));
        		
        		var nRooms = 1;
        		var maxRooms = 8;
@@ -133,7 +149,7 @@ pc.script.create('levelCreation', function (context) {
 						break;
         		} else {
 					if (this.findWallToBreak(wallToBreak))
-						this.carveCorridor(wallToBreak[0], wallToBreak[1], this.randomInt(4, 8));
+						this.carveCorridor(wallToBreak[0], wallToBreak[1], Util.randomInt(4, 8));
 					else
 						break;
         		}
@@ -141,14 +157,10 @@ pc.script.create('levelCreation', function (context) {
         },
         
         generateRandomRoom: function(room) {
-        	room[0] = this.randomInt(0, COLS-5);
-        	room[1] = this.randomInt(0, ROWS-5);
-        	room[2] = this.randomInt(4, 7);
-        	room[3] = this.randomInt(4, 7);
-        },
-        
-        randomInt: function(min, max) {
-        	return Math.floor(pc.math.random(min, max));
+        	room[0] = Util.randomInt(0, COLS-5);
+        	room[1] = Util.randomInt(0, ROWS-5);
+        	room[2] = Util.randomInt(4, 7);
+        	room[3] = Util.randomInt(4, 7);
         },
         
         canFitRoom: function(x0, z0, dx, dz) {
@@ -172,8 +184,8 @@ pc.script.create('levelCreation', function (context) {
         
         findWallToBreak: function(pos) {
         	for (var i=0; i < 999999; i++) {
-        		pos[0] = this.randomInt(0, COLS);
-        		pos[1] = this.randomInt(0, ROWS);
+        		pos[0] = Util.randomInt(0, COLS);
+        		pos[1] = Util.randomInt(0, ROWS);
         		
         		if (level.getCellType(pos[0], pos[1]) != HOLLOW) {
             		var spaceAround = 0;
@@ -221,18 +233,7 @@ pc.script.create('levelCreation', function (context) {
         			break;
         		level.setCellType(x0+i*dx, z0+i*dz, HOLLOW);
         	}
-        },   
-        
-        getRandomEmptyTile: function(pos) {
-            for (var i=0; i < 999999; i++) {
-        		pos[0] = this.randomInt(0, COLS);
-        		pos[1] = this.randomInt(0, ROWS);
-        		
-        		if (level.getCellType(pos[0], pos[1]) == HOLLOW)
-        			return true;
-        	}
-        	return false;
-        },     
+        },           
     };
 
    return LevelCreation;

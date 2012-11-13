@@ -33,7 +33,7 @@ pc.script.create('input', function (context) {
             
             if (context.keyboard.isPressed('N')) {
             	if (resettable)
-			        context.systems.script.broadcast('levelCreation', 'resetMaze', null);
+			        context.systems.script.broadcast('game', 'newGame');
 		        resettable = false;
 		    } else {
 			    resettable = true;
