@@ -2,14 +2,43 @@ pc.script.create('game', function (context) {
 	var level, levelCreation;
 	var player;
 	var playerPos;
+	var debugOutput;
+	var container;
+	var camera;
 	
     var Game = function (entity) {
         this.entity = entity;
     };
 
+	var vecToString = function(vec) {
+		var str = "";
+		for (var i=0; i < vec.length; i++) {
+			str += (i>0 ? ", " : "")+vec[i];
+		}
+		return str;
+	};
+
     Game.prototype = {    	
         initialize: function () {
         	player = context.root.findByName('Player');
+	        camera  = context.root.findByName('Camera');
+        	
+			container = document.getElementById('application-container');
+        	
+        	debugOutput = document.createElement('div');
+        	debugOutput.id = 'debugOutput';
+			debugOutput.style.position = 'absolute';
+			debugOutput.style.left = '2%';
+			debugOutput.style.top = '5%';
+//			debugOutput.style.marginLeft = '-10%';
+			debugOutput.style.width = '50%';
+			debugOutput.style.color = '#ffffff';
+			debugOutput.style.fontFamily = 'Courier';
+			debugOutput.style.display = true ? 'block' : 'none';
+        	debugOutput.innerHTML = "---";
+        	container.appendChild(debugOutput);
+        	
+        	this.newGame();
         },
         
         newGame: function() {
@@ -38,24 +67,38 @@ pc.script.create('game', function (context) {
         tick: function() {
             var dx = 0;
             var dz = 0;
-            if (context.keyboard.isPressed(pc.input.KEY_UP)) 
-            {
+            if (context.keyboard.wasPressed(pc.input.KEY_UP)) {
                 dz -= 1;
             }
-            if (context.keyboard.isPressed(pc.input.KEY_LEFT)) {
+            if (context.keyboard.wasPressed(pc.input.KEY_LEFT)) {
                 dx -= 1;
             }
-            if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
+            if (context.keyboard.wasPressed(pc.input.KEY_DOWN)) {
                 dz += 1;
             }
-            if (context.keyboard.isPressed(pc.input.KEY_RIGHT)) {
+            if (context.keyboard.wasPressed(pc.input.KEY_RIGHT)) {
                 dx += 1;
             }
             
-            playerPos[0] += dx;
-            playerPos[1] += dz;
-            
-			this.updatePlayerPosition();        
+            if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
+				playerPos[0] += dx;
+				playerPos[1] += dz;
+				
+				this.updatePlayerPosition();
+				
+				var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 40, 150, playerPos[1]*10 - 40);
+				var cameraPos = camera.getLocalPosition();
+				var r = pc.math.vec3.create();
+				pc.math.vec3.subtract(cameraPos, targetCameraPos, r);
+				if (pc.math.vec3.length(r) > 0.1) {
+					pc.math.vec3.lerp(cameraPos, targetCameraPos, 0.05, r);
+					camera.setLocalPosition(r);
+				}
+				
+// 				camera.setLocalPosition(targetCameraPos);
+			}
+			
+// 			debugOutput.innerHTML = "Player: "+vecToString(playerPos)+" Camera: "+vecToString(cameraPos);
         },
     };
 

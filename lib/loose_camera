@@ -1,0 +1,57 @@
+pc.script.create('pc:camera:loose', function (context) {
+    var MAX_X_DEGREES = 10;
+    var MAX_Y_DEGREES = 2;
+    var X_SCALE = MAX_X_DEGREES * pc.math.DEG_TO_RAD;
+    var Y_SCALE = MAX_Y_DEGREES * pc.math.DEG_TO_RAD;
+    
+    /**
+     * @name LooseCamera
+     * @description A camera that has a loosely fixed direction.
+     * The direction is altered when the mouse moves around the canvas.  
+     */
+    var LooseCamera = function (entity) {
+        this.entity = entity;
+        
+        context.mouse.bind(pc.input.EVENT_MOUSE_MOVE, this.onMouseMove.bind(this));
+        
+        this.base = pc.math.mat4.clone(this.entity.getLocalTransform());
+        this.x = [1,0,0];
+        this.y = [0,1,0];
+        this.rotateX = pc.math.mat4.create();
+        this.rotateY = pc.math.mat4.create();
+        this.temp = pc.math.mat4.create();
+    };
+    
+    /**
+     * @name LooseCamera#onMouseMove
+     * @description Handle a pc.input.Mouse event, normalize the values and offset the camera
+     * @param {pc.input.Mouse} event The mouse event from the mouse handler
+     */
+    LooseCamera.prototype.onMouseMove = function (event) {
+        var targetHalfHeight = event.event.currentTarget.clientHeight / 2;
+        var targetHalfWidth = event.event.currentTarget.clientWidth / 2;
+        
+        var xOffset = (event.x - targetHalfWidth) / targetHalfWidth;
+        var yOffset = (event.y - targetHalfHeight) / targetHalfHeight;
+        
+        this.offset(xOffset, yOffset);
+    };
+    
+    /**
+     * @name LooseCamera#offset
+     * @description Alter the rotation of the camera by the offset amount
+     * @param {Number} xOffset Normalized between -1 and 1 offset value for horizontal rotation
+     * @param {Number} xOffset Normalized between -1 and 1 offset value for vertical rotation
+     */
+    LooseCamera.prototype.offset = function (xOffset, yOffset) {
+        var ltm = this.entity.getLocalTransform();
+
+        pc.math.mat4.makeRotate(yOffset * Y_SCALE, this.x, this.rotateX);
+        pc.math.mat4.makeRotate(xOffset * X_SCALE, this.y, this.rotateY);
+        
+        pc.math.mat4.multiply(this.base, this.rotateX, this.temp);
+        pc.math.mat4.multiply(this.temp, this.rotateY, ltm);
+    };
+    
+    return LooseCamera;
+});

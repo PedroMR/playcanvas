@@ -18,6 +18,10 @@
         			this.cells[z][x] = UNDEFINED;
         	}
 		},
+		     
+		isCellEmpty: function(x, z) {
+			return this.getCellType(x, z) == HOLLOW;
+		},
 		        
         getCellType: function(x, z) {
         	if (z < 0 || z >= this.rows || x < 0 || x >= this.cols)
@@ -40,7 +44,7 @@
         getRandomEmptyTile: function(pos) {
             for (var i=0; i < 999999; i++) {
             	this.getRandomTile(pos);
-        		if (this.getCellType(pos[0], pos[1]) == HOLLOW)
+        		if (this.isCellEmpty(pos[0], pos[1]))
         			return true;
         	}
         	return false;

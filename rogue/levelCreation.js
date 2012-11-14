@@ -45,7 +45,7 @@ pc.script.create('levelCreation', function (context) {
             rootTile = context.root.findByName('Tile0');
             rootTileContainer = context.root.findByName('Tiles');
             
-            this.resetMaze();
+//             this.resetMaze();
         },
         
         resetMaze:function() {
@@ -54,11 +54,11 @@ pc.script.create('levelCreation', function (context) {
             var children = rootWallContainer.getChildren();
             var node;
             while (node = children.pop()) {
-            	node.close();
+            	node.destroy();
             }
             children = rootTileContainer.getChildren();
             while (node = children.pop()) {
-            	node.close();
+            	node.destroy();
             }
             
             for (var z=0; z < ROWS; z++) {
@@ -66,13 +66,13 @@ pc.script.create('levelCreation', function (context) {
 	            	if (level.getCellType(x, z) == HOLLOW) {
 		            	this.addTile(x, z, 0);
 		            	if (level.getCellType(x+1, z) != HOLLOW)
-		            		this.addWall(x+1, z+1, 1, true);
+		            		this.addWall(x+1, z+1, 1, true, false);
 		            	if (level.getCellType(x-1, z) != HOLLOW)
-		            		this.addWall(x, z+1, 1, true);
+		            		this.addWall(x, z+1, 1, true, true);
 		            	if (level.getCellType(x, z-1) != HOLLOW)
-		            		this.addWall(x, z, 1, false);
+		            		this.addWall(x, z, 1, false, true);
 		            	if (level.getCellType(x, z+1) != HOLLOW)
-		            		this.addWall(x, z+1, 1, false);
+		            		this.addWall(x, z+1, 1, false, false);
 		            }
 	            }
             }
@@ -100,7 +100,7 @@ pc.script.create('levelCreation', function (context) {
 			return this;
 		},
                 
-        addWall: function(x, z, length, vertical) {
+        addWall: function(x, z, length, vertical, high) {
             var newWall = cloneEntity(rootWall);
  
             var rootY = rootWall.getLocalPosition()[1];
@@ -108,10 +108,12 @@ pc.script.create('levelCreation', function (context) {
             this.placeAtCell(newWall, x-0.5, z-0.5);
             if (vertical)
                 newWall.rotateLocal(0, 90, 0);
+           	rootScale = pc.math.vec3.clone(rootScale);
             if (length > 1) {
-            	rootScale = pc.math.vec3.clone(rootScale);
 	            rootScale[0] *= length;
             }
+//             if (!high)
+//             	rootScale[1] *= 0.25;
             newWall.setLocalScale(rootScale);
             newWall.translateLocal(rootScale[0]/2, 0, rootScale[2]/2);
             
