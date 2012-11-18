@@ -80,24 +80,24 @@ pc.script.create('game', function (context) {
                 dx += 1;
             }
             
-            if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
-				playerPos[0] += dx;
-				playerPos[1] += dz;
-				
-				this.updatePlayerPosition();
-				
-				var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 40, 150, playerPos[1]*10 - 40);
-				var cameraPos = camera.getLocalPosition();
-				var r = pc.math.vec3.create();
-				pc.math.vec3.subtract(cameraPos, targetCameraPos, r);
-				if (pc.math.vec3.length(r) > 0.1) {
-					pc.math.vec3.lerp(cameraPos, targetCameraPos, 0.05, r);
-					camera.setLocalPosition(r);
+            if (dx != 0 || dz != 0) {
+				if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
+					playerPos[0] += dx;
+					playerPos[1] += dz;
+					
+					this.updatePlayerPosition();
+					level.seeCellsFrom(playerPos[0], playerPos[1]);
+					levelCreation.renderSeenCells();
 				}
-				
-// 				camera.setLocalPosition(targetCameraPos);
 			}
-			
+			var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 40, 150, playerPos[1]*10 - 40);
+			var cameraPos = camera.getLocalPosition();
+			var r = pc.math.vec3.create();
+			pc.math.vec3.subtract(cameraPos, targetCameraPos, r);
+			if (pc.math.vec3.length(r) > 0.1) {
+				pc.math.vec3.lerp(cameraPos, targetCameraPos, 0.04, r);
+				camera.setLocalPosition(r);
+			}
 // 			debugOutput.innerHTML = "Player: "+vecToString(playerPos)+" Camera: "+vecToString(cameraPos);
         },
     };

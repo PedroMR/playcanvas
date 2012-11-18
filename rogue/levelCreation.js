@@ -6,7 +6,7 @@ pc.script.create('levelCreation', function (context) {
     var rootTile;
     var rootTileContainer;
     var CELL_TO_WORLD = 10;
-    var level;
+    var level, renderedCells;
     var ROWS = 30;
     var COLS = 30;
     var UNDEFINED = 1;
@@ -44,8 +44,6 @@ pc.script.create('levelCreation', function (context) {
             rootWallContainer = context.root.findByName(ROOT_WALL_CONTAINER);
             rootTile = context.root.findByName('Tile0');
             rootTileContainer = context.root.findByName('Tiles');
-            
-//             this.resetMaze();
         },
         
         resetMaze:function() {
@@ -61,8 +59,20 @@ pc.script.create('levelCreation', function (context) {
             	node.destroy();
             }
             
+            renderedCells = level.createCellArray(false);
+            this.renderSeenCells();
+        },
+        
+        renderSeenCells: function() {
             for (var z=0; z < ROWS; z++) {
 	            for (var x=0; x < COLS; x++) {
+	            	var visible = level.hasSeenCell(x, z);
+	            	if (!visible)
+	            		continue;	            
+					if (renderedCells[z][x])
+						continue;
+					renderedCells[z][x] = true;
+					
 	            	if (level.getCellType(x, z) == HOLLOW) {
 		            	this.addTile(x, z, 0);
 		            	if (level.getCellType(x+1, z) != HOLLOW)
