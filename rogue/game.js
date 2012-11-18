@@ -2,6 +2,7 @@ pc.script.create('game', function (context) {
 	var level, levelCreation;
 	var player;
 	var playerPos;
+	var goal, goalPos;
 	var debugOutput;
 	var container;
 	var camera;
@@ -22,6 +23,7 @@ pc.script.create('game', function (context) {
     Game.prototype = {    	
         initialize: function () {
         	player = context.root.findByName('Player');
+        	goal = context.root.findByName('Goal');
 	        camera  = context.root.findByName('Camera');
         	
 			container = document.getElementById('application-container');
@@ -49,10 +51,13 @@ pc.script.create('game', function (context) {
 			levelCreation.resetMaze();
 			level = levelCreation.getLevel();
         	
-        	var spawn = pc.math.vec2.create();
-        	level.getRandomEmptyTile(spawn);
-        	playerPos = spawn;
-        	this.updatePlayerPosition();
+        	goalPos = pc.math.vec2.create();
+        	level.getRandomEmptyTile(goalPos);
+        	levelCreation.placeAtCell(goal, 9999, 9999);
+        	
+        	playerPos = pc.math.vec2.create();
+        	level.getRandomEmptyTile(playerPos);
+        	this.updatePlayerPosition();        	
         },
         
         updatePlayerPosition: function()
@@ -60,6 +65,12 @@ pc.script.create('game', function (context) {
             levelCreation.placeAtCell(player, playerPos[0], playerPos[1]);
 			level.seeCellsFrom(playerPos[0], playerPos[1]);
 			levelCreation.renderSeenCells();
+			
+			if (level.hasSeenCell(goalPos[0], goalPos[1]))
+				levelCreation.placeAtCell(goal, goalPos[0], goalPos[1]);
+				
+			if (playerPos[0] == goalPos[0] && playerPos[1] == goalPos[1])
+				this.newGame();
         },  
               
         update: function (dt) {
@@ -73,16 +84,16 @@ pc.script.create('game', function (context) {
 				var dx = 0;
 				var dz = 0;
 				
-				if (context.keyboard.isPressed(pc.input.KEY_UP)) {
+				if (context.keyboard.isPressed(pc.input.KEY_RIGHT)) {
 					dz -= 1;
 				}
-				if (context.keyboard.isPressed(pc.input.KEY_LEFT)) {
+				if (context.keyboard.isPressed(pc.input.KEY_UP)) {
 					dx -= 1;
 				}
-				if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
+				if (context.keyboard.isPressed(pc.input.KEY_LEFT)) {
 					dz += 1;
 				}
-				if (context.keyboard.isPressed(pc.input.KEY_RIGHT)) {
+				if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
 					dx += 1;
 				}
 				
