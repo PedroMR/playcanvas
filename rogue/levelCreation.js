@@ -7,8 +7,10 @@ pc.script.create('levelCreation', function (context) {
     var rootTileContainer;
     var CELL_TO_WORLD = 10;
     var level, renderedCells;
-    var ROWS = 30;
-    var COLS = 30;
+    var ROWS = 50;
+    var COLS = 50;
+    var MAX_ROOMS = 20;
+    
     var UNDEFINED = 1;
     var HOLLOW = 0;
     var BLOCKED = 2;
@@ -145,7 +147,7 @@ pc.script.create('levelCreation', function (context) {
 				this.carveCorridor(wallToBreak[0], wallToBreak[1], Util.randomInt(3, 6));
        		
        		var nRooms = 1;
-       		var maxRooms = 8;
+       		var maxRooms = MAX_ROOMS;
        		
         	for (var tries=0; tries < 999999; tries++) {
         		if (pc.math.random(0,1) > 0.2) {

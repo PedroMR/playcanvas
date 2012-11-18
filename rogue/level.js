@@ -69,7 +69,7 @@
         },
         
         seeCellsFrom: function(x0, z0) {
-        	var amp = 20;
+        	var amp = 8;
         	for (var z = z0-amp; z < z0+amp; z++) {
 				for (var x = x0-amp; x < x0+amp; x++) {
 					if (this.canSeeFrom(x, z, x0, z0))

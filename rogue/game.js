@@ -5,6 +5,7 @@ pc.script.create('game', function (context) {
 	var debugOutput;
 	var container;
 	var camera;
+	var dtSincePlayerMoved = 0;
 	
     var Game = function (entity) {
         this.entity = entity;
@@ -57,40 +58,45 @@ pc.script.create('game', function (context) {
         updatePlayerPosition: function()
         {
             levelCreation.placeAtCell(player, playerPos[0], playerPos[1]);
+			level.seeCellsFrom(playerPos[0], playerPos[1]);
+			levelCreation.renderSeenCells();
         },  
               
         update: function (dt) {
         	if (playerPos)
-        		this.tick();
+        		this.tick(dt);
         },
         
-        tick: function() {
-            var dx = 0;
-            var dz = 0;
-            if (context.keyboard.wasPressed(pc.input.KEY_UP)) {
-                dz -= 1;
-            }
-            if (context.keyboard.wasPressed(pc.input.KEY_LEFT)) {
-                dx -= 1;
-            }
-            if (context.keyboard.wasPressed(pc.input.KEY_DOWN)) {
-                dz += 1;
-            }
-            if (context.keyboard.wasPressed(pc.input.KEY_RIGHT)) {
-                dx += 1;
-            }
-            
-            if (dx != 0 || dz != 0) {
-				if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
-					playerPos[0] += dx;
-					playerPos[1] += dz;
-					
-					this.updatePlayerPosition();
-					level.seeCellsFrom(playerPos[0], playerPos[1]);
-					levelCreation.renderSeenCells();
+        tick: function(dt) {
+			dtSincePlayerMoved += dt;
+        	if (dtSincePlayerMoved > 0.15) {
+				var dx = 0;
+				var dz = 0;
+				
+				if (context.keyboard.isPressed(pc.input.KEY_UP)) {
+					dz -= 1;
+				}
+				if (context.keyboard.isPressed(pc.input.KEY_LEFT)) {
+					dx -= 1;
+				}
+				if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
+					dz += 1;
+				}
+				if (context.keyboard.isPressed(pc.input.KEY_RIGHT)) {
+					dx += 1;
+				}
+				
+				if (dx != 0 || dz != 0) {
+					if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
+						playerPos[0] += dx;
+						playerPos[1] += dz;
+						
+						this.updatePlayerPosition();
+						dtSincePlayerMoved = 0;
+					}
 				}
 			}
-			var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 40, 150, playerPos[1]*10 - 40);
+			var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 150, 150, playerPos[1]*10 - 150);
 			var cameraPos = camera.getLocalPosition();
 			var r = pc.math.vec3.create();
 			pc.math.vec3.subtract(cameraPos, targetCameraPos, r);
