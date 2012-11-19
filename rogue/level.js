@@ -61,19 +61,32 @@
 	        	return this.seenCells[z][x] != NEVER;
         },
         
-        setCellSeen: function(x, z) {
+        isCellInSight: function(x, z) {
+        	if (this.isOutOfBounds(x, z))
+        		return false;
+        	else
+	        	return this.seenCells[z][x] == INSIGHT;
+	    },
+	    
+        setCellSeen: function(x, z, value) {
         	if (this.isOutOfBounds(x, z))
         		return;
         	else
-	        	this.seenCells[z][x] = REMEMBERED;
+	        	this.seenCells[z][x] = value ? value : REMEMBERED;
         },
         
         seeCellsFrom: function(x0, z0) {
+			for (var z=0; z < this.rows; z++) {
+				for (var x=0; x < this.cols; x++) {
+					if (this.hasSeenCell(x, z))
+						this.setCellSeen(x, z, REMEMBERED);
+				}
+			}
         	var amp = 8;
         	for (var z = z0-amp; z < z0+amp; z++) {
 				for (var x = x0-amp; x < x0+amp; x++) {
 					if (this.canSeeFrom(x, z, x0, z0))
-						this.setCellSeen(x, z);
+						this.setCellSeen(x, z, INSIGHT);
 				}
         	}
         },

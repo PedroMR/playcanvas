@@ -70,13 +70,19 @@ pc.script.create('levelCreation', function (context) {
 	            for (var x=0; x < COLS; x++) {
 	            	var visible = level.hasSeenCell(x, z);
 	            	if (!visible)
-	            		continue;	            
-					if (renderedCells[z][x])
+	            		continue;
+					if (renderedCells[z][x]) {
+		            	var colour = level.isCellInSight(x, z) ? "0xe4baba" : "0x543a3a";
+						var tile = renderedCells[z][x];
+						
+						tile.primitive.color = colour;
+						
 						continue;
+					}
 					renderedCells[z][x] = true;
 					
 	            	if (level.getCellType(x, z) == HOLLOW) {
-		            	this.addTile(x, z, 0);
+		            	renderedCells[z][x] = this.addTile(x, z, 0);
 		            	if (level.getCellType(x+1, z) != HOLLOW)
 		            		this.addWall(x+1, z+1, 1, true, false);
 		            	if (level.getCellType(x-1, z) != HOLLOW)
@@ -101,7 +107,7 @@ pc.script.create('levelCreation', function (context) {
             var rootScale = rootTile.getLocalScale();
             this.placeAtCell(newTile, x, z);
             rootTileContainer.addChild(newTile);
-
+            return newTile;
         },
         
         placeAtCell: function(entity, col, row) {

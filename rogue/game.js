@@ -6,6 +6,7 @@ pc.script.create('game', function (context) {
 	var debugOutput;
 	var container;
 	var camera;
+	var moveCount;
 	var dtSincePlayerMoved = 0;
 	
     var Game = function (entity) {
@@ -57,7 +58,9 @@ pc.script.create('game', function (context) {
         	
         	playerPos = pc.math.vec2.create();
         	level.getRandomEmptyTile(playerPos);
-        	this.updatePlayerPosition();        	
+        	this.updatePlayerPosition();
+        	
+        	moveCount = 0;        	
         },
         
         updatePlayerPosition: function()
@@ -104,6 +107,9 @@ pc.script.create('game', function (context) {
 						
 						this.updatePlayerPosition();
 						dtSincePlayerMoved = 0;
+						moveCount++;
+						
+						debugOutput.innerHTML = "Moves: "+moveCount;
 					}
 				}
 			}
