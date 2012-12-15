@@ -1,9 +1,11 @@
+//requirejs([], function($) {
+
 pc.script.create('game', function (context) {
 	var level, levelCreation;
 	var player;
 	var playerPos;
 	var goal, goalPos;
-	var debugOutput;
+	var debugOutput, distanceOutput;
 	var container;
 	var camera;
 	var moveCount;
@@ -11,7 +13,12 @@ pc.script.create('game', function (context) {
 	
     var Game = function (entity) {
         this.entity = entity;
-    };
+//	request('http://world.pmr.jit.su', function (error, response, body) {
+//	  if (!error && response.statusCode == 200) {
+//	    console.log(body) // Print the google web page.
+//	  }
+//	})
+	    };
 
 	var vecToString = function(vec) {
 		var str = "";
@@ -20,27 +27,39 @@ pc.script.create('game', function (context) {
 		}
 		return str;
 	};
+	
+	var createDiv = function(id, left, top) {
+		var div = document.createElement('div');
+		div.id = id;
+		div.style.position = 'absolute';
+		div.style.left = left;
+		div.style.top = top;
+//			div.style.marginLeft = '-10%';
+		div.style.width = '50%';
+		div.style.color = '#ffffff';
+		div.style.fontFamily = 'Courier';
+		div.style.display = true ? 'block' : 'none';
+		container.appendChild(div);
+
+		return div;
+	};
 
     Game.prototype = {    	
         initialize: function () {
+			container = document.getElementById('application-container');
+			
         	player = context.root.findByName('Player');
         	goal = context.root.findByName('Goal');
 	        camera  = context.root.findByName('Camera');
         	
-			container = document.getElementById('application-container');
-        	
-        	debugOutput = document.createElement('div');
-        	debugOutput.id = 'debugOutput';
-			debugOutput.style.position = 'absolute';
-			debugOutput.style.left = '2%';
-			debugOutput.style.top = '5%';
-//			debugOutput.style.marginLeft = '-10%';
-			debugOutput.style.width = '50%';
-			debugOutput.style.color = '#ffffff';
-			debugOutput.style.fontFamily = 'Courier';
-			debugOutput.style.display = true ? 'block' : 'none';
+        	debugOutput = createDiv('debugOutput', '2%', '5%');
         	debugOutput.innerHTML = "---";
-        	container.appendChild(debugOutput);
+        	
+        	distanceOutput = createDiv('distanceOutput', '50%', '80%');
+        	distanceOutput.style.fontSize = '32pt';
+        	distanceOutput.style.color = 'yellow';
+        	distanceOutput.innerHTML = "";
+        	
         	
         	this.newGame();
         },
@@ -81,6 +100,57 @@ pc.script.create('game', function (context) {
         		this.tick(dt);
         },
         
+        planPathToGoalFrom: function(x0, y0) {
+        	var width = level.cols;
+        	var xyToIdx = function (x,y) { return x + y*width; };
+        	var idxToX = function(index) { return index % width; };
+        	var idxToY = function(index) { return Math.floor(index / width); };
+        	var heuristicCost = function(startIdx, goalIdx) { 
+        		var x = idxToX(startIdx);
+        		var y = idxToY(startIdx);
+        		var gx = idxToX(goalIdx);
+        		var gy = idxToY(goalIdx);
+        		return Math.abs(gx - x) + Math.abs(gy - y);
+        	};
+        	var neighboursFrom = function(index) {
+        		var x = idxToX(index);
+        		var y = idxToY(index);
+        		var neighbours = [];
+        		var canGo = function(x1, y1) { return level.isCellEmpty(x1, y1) || !level.hasSeenCell(x1, y1);};
+        		if (canGo(x-1, y)) neighbours.push(xyToIdx(x-1, y));
+        		if (canGo(x+1, y)) neighbours.push(xyToIdx(x+1, y));
+        		if (canGo(x, y-1)) neighbours.push(xyToIdx(x, y-1));
+        		if (canGo(x, y+1)) neighbours.push(xyToIdx(x, y+1));
+        		return neighbours;
+        	};
+
+        	var goalIndex = xyToIdx(goalPos[0], goalPos[1]);
+        	var closedSet = [];
+        	var openSet = [];
+        	var cameFrom = [];
+        	var gScoreMap = [];
+        	var fScoreMap = [];
+
+        	var startIndex = xyToIdx(x0, y0);
+        	openSet.push(startIndex);
+        	gScoreMap[startIndex] = 0;
+        	fScoreMap[startIndex] = heuristicCost(startIndex, goalIndex);
+
+        	var neighbours = neighboursFrom(startIndex);
+        	var best = startIndex;
+        	var bestCost = fScoreMap[best];
+        	for (var i = neighbours.length - 1; i >= 0; i--) {
+        		var idx = neighbours[i];
+        		var cost = heuristicCost(idx, goalIndex);
+        		if (cost < bestCost) { cost = bestCost; best = idx; }
+        	};
+
+        	var nextIdx = best;
+        	var nextX = idxToX(nextIdx);
+        	var nextY = idxToY(nextIdx);
+        	return pc.math.vec2.create(nextX, nextY);
+        },
+
         tick: function(dt) {
 			dtSincePlayerMoved += dt;
         	if (dtSincePlayerMoved > 0.15) {
@@ -99,7 +169,13 @@ pc.script.create('game', function (context) {
 				if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
 					dx += 1;
 				}
-				
+
+				if (context.keyboard.isPressed(pc.input.KEY_SPACE)) {
+					var nextPos = this.planPathToGoalFrom(playerPos[0], playerPos[1]);
+					dx = nextPos[0] - playerPos[0];
+					dz = nextPos[1] - playerPos[1];
+				}
+
 				if (dx != 0 || dz != 0) {
 					if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
 						playerPos[0] += dx;
@@ -127,3 +203,5 @@ pc.script.create('game', function (context) {
 
    return Game;
 });
+
+//});
