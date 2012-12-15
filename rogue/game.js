@@ -9,8 +9,14 @@ pc.script.create('game', function (context) {
 	var container;
 	var camera;
 	var moveCount;
+	var lastPosition;
 	var dtSincePlayerMoved = 0;
-	
+	var SEE_EVERYTHING = false;
+	var MANUAL_MOVE = false;
+	var SECONDS_BETWEEN_MOVES = 0.5;
+	var creatures = [];
+	var zombieModel;
+
     var Game = function (entity) {
         this.entity = entity;
 //	request('http://world.pmr.jit.su', function (error, response, body) {
@@ -51,6 +57,7 @@ pc.script.create('game', function (context) {
         	player = context.root.findByName('Player');
         	goal = context.root.findByName('Goal');
 	        camera  = context.root.findByName('Camera');
+	        zombieModel  = context.root.findByName('Zombie');
         	
         	debugOutput = createDiv('debugOutput', '2%', '5%');
         	debugOutput.innerHTML = "---";
@@ -78,6 +85,9 @@ pc.script.create('game', function (context) {
         	playerPos = pc.math.vec2.create();
         	level.getRandomEmptyTile(playerPos);
         	this.updatePlayerPosition();
+        	lastPosition = pc.math.vec2.clone(playerPos);
+
+        	levelCreation.placeAtCell(zombieModel, playerPos[0]-1, playerPos[1]);
         	
         	moveCount = 0;        	
         },
@@ -88,12 +98,21 @@ pc.script.create('game', function (context) {
 			level.seeCellsFrom(playerPos[0], playerPos[1]);
 			levelCreation.renderSeenCells();
 			
-			if (level.hasSeenCell(goalPos[0], goalPos[1]))
+			if (level.hasSeenCell(goalPos[0], goalPos[1]) || SEE_EVERYTHING)
 				levelCreation.placeAtCell(goal, goalPos[0], goalPos[1]);
 				
 			if (playerPos[0] == goalPos[0] && playerPos[1] == goalPos[1])
 				this.newGame();
         },  
+
+        movePlayerPosition: function()
+        {
+			var r = pc.math.vec3.create();
+//			pc.math.vec3.subtract(lastPosition, playerPos, r);
+			var t = Math.min(1, dtSincePlayerMoved / 0.5);
+			pc.math.vec3.lerp(lastPosition, playerPos, t, r);
+			levelCreation.placeAtCell(player, r[0], r[1]);
+        },
               
         update: function (dt) {
         	if (playerPos)
@@ -191,25 +210,31 @@ pc.script.create('game', function (context) {
         },
 
         tick: function(dt) {
+			if (context.keyboard.wasPressed(pc.input.KEY_M)) {
+				MANUAL_MOVE = !MANUAL_MOVE;
+			}
 			dtSincePlayerMoved += dt;
-        	if (dtSincePlayerMoved > 0.15) {
+        	if (dtSincePlayerMoved > SECONDS_BETWEEN_MOVES) {
+
 				var dx = 0;
 				var dz = 0;
-				
-				if (context.keyboard.isPressed(pc.input.KEY_RIGHT)) {
-					dz -= 1;
-				}
-				if (context.keyboard.isPressed(pc.input.KEY_UP)) {
-					dx -= 1;
-				}
-				if (context.keyboard.isPressed(pc.input.KEY_LEFT)) {
-					dz += 1;
-				}
-				if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
-					dx += 1;
+        		if (MANUAL_MOVE) {
+					
+					if (context.keyboard.isPressed(pc.input.KEY_RIGHT)) {
+						dz -= 1;
+					}
+					if (context.keyboard.isPressed(pc.input.KEY_UP)) {
+						dx -= 1;
+					}
+					if (context.keyboard.isPressed(pc.input.KEY_LEFT)) {
+						dz += 1;
+					}
+					if (context.keyboard.isPressed(pc.input.KEY_DOWN)) {
+						dx += 1;
+					}
 				}
 
-				if (context.keyboard.isPressed(pc.input.KEY_SPACE)) {
+				if (!MANUAL_MOVE || context.keyboard.isPressed(pc.input.KEY_SPACE)) {
 					var nextPos = this.planPathToGoalFrom(playerPos[0], playerPos[1]);
 					dx = nextPos[0] - playerPos[0];
 					dz = nextPos[1] - playerPos[1];
@@ -217,6 +242,7 @@ pc.script.create('game', function (context) {
 
 				if (dx != 0 || dz != 0) {
 					if (level.isCellEmpty(playerPos[0] + dx, playerPos[1] + dz)) {
+						pc.math.vec2.copy(playerPos, lastPosition);
 						playerPos[0] += dx;
 						playerPos[1] += dz;
 						
@@ -228,6 +254,7 @@ pc.script.create('game', function (context) {
 					}
 				}
 			}
+			this.movePlayerPosition();
 			var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 150, 150, playerPos[1]*10 - 150);
 			var cameraPos = camera.getLocalPosition();
 			var r = pc.math.vec3.create();
