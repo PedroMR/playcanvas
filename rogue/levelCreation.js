@@ -74,9 +74,8 @@ pc.script.create('levelCreation', function (context) {
 					if (renderedCells[z][x]) {
 		            	var colour = level.isCellInSight(x, z) ? "0xe4baba" : "0x543a3a";
 						var tile = renderedCells[z][x];
-						
-						tile.primitive.color = colour;
-						
+						if (tile && tile.primitive)
+						  tile.primitive.color = colour;
 						continue;
 					}
 					renderedCells[z][x] = true;

@@ -99,8 +99,9 @@
 			var sz = (z0 < z1) ? 1 : -1;
 			var err = dx - dz;
 			
-			if (!this.isCellEmpty(x1, z1))
-				return false;
+			if (dx <= 1 && dz <= 1) return true;
+			// if (!this.isCellEmpty(x1, z1))
+			// 	return false;
 			
 			// Main loop
 			while (!((x0 == x1) && (z0 == z1))) {

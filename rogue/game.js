@@ -130,25 +130,64 @@ pc.script.create('game', function (context) {
         	var cameFrom = [];
         	var gScoreMap = [];
         	var fScoreMap = [];
+        	var findLowestF = function(set) { 
+        		var bestIdx = set[0];
+        		var bestCost = fScoreMap[bestIdx];
+        		var bestI = 0;
+        		for (var i = set.length - 1; i >= 0; i--) {
+        			var thisIdx = set[i];
+        			var thisCost = fScoreMap[thisIdx];
+        			if (thisCost < bestCost) {
+        				bestCost = thisCost;
+        				bestIdx = thisIdx;
+        				bestI = i;
+        			}
+        		};
+        		set.splice(bestI, 1);
+        		return bestIdx;
+        	};
 
         	var startIndex = xyToIdx(x0, y0);
         	openSet.push(startIndex);
         	gScoreMap[startIndex] = 0;
         	fScoreMap[startIndex] = heuristicCost(startIndex, goalIndex);
 
-        	var neighbours = neighboursFrom(startIndex);
-        	var best = startIndex;
-        	var bestCost = fScoreMap[best];
-        	for (var i = neighbours.length - 1; i >= 0; i--) {
-        		var idx = neighbours[i];
-        		var cost = heuristicCost(idx, goalIndex);
-        		if (cost < bestCost) { cost = bestCost; best = idx; }
-        	};
+        	while (openSet.length > 0) {
+        		var candidate = findLowestF(openSet)
+        		if (candidate == goalIndex)
+        			break;
+        		if (closedSet[candidate])
+        			continue;
+        		closedSet[candidate] = true;
 
-        	var nextIdx = best;
-        	var nextX = idxToX(nextIdx);
-        	var nextY = idxToY(nextIdx);
-        	return pc.math.vec2.create(nextX, nextY);
+	        	var neighbours = neighboursFrom(candidate);
+	        	var best = -1;
+	        	var bestCost = fScoreMap[candidate];
+	        	for (var i = neighbours.length - 1; i >= 0; i--) {
+	        		var idx = neighbours[i];
+	        		if (closedSet[idx]) 
+	        			continue;
+
+	        		var costFromHere = gScoreMap[candidate] + 1;
+	        		if (gScoreMap[idx] == null || costFromHere < gScoreMap[idx]) {
+	        			gScoreMap[idx] = costFromHere;
+	        			cameFrom[idx] = candidate;
+	        			fScoreMap[idx] = costFromHere + heuristicCost(idx, goalIndex);
+	        			openSet.push(idx);
+	        		}
+	        	};
+        	}
+
+        	if (cameFrom[goalIndex]) {
+        		var idx = goalIndex;
+        		while (cameFrom[idx] != startIndex) {
+        			idx = cameFrom[idx];
+        		}
+        		return pc.math.vec2.create(idxToX(idx), idxToY(idx));
+        	}
+        	else {
+        		return pc.math.vec2.create(x0, y0);
+        	}
         },
 
         tick: function(dt) {
