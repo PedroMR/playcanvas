@@ -116,7 +116,7 @@ pc.script.create('game', function (context) {
         		var x = idxToX(index);
         		var y = idxToY(index);
         		var neighbours = [];
-        		var canGo = function(x1, y1) { return level.isCellEmpty(x1, y1) || !level.hasSeenCell(x1, y1);};
+        		var canGo = function(x1, y1) { return level.isCellEmpty(x1, y1); };
         		if (canGo(x-1, y)) neighbours.push(xyToIdx(x-1, y));
         		if (canGo(x+1, y)) neighbours.push(xyToIdx(x+1, y));
         		if (canGo(x, y-1)) neighbours.push(xyToIdx(x, y-1));
