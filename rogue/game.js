@@ -11,7 +11,7 @@ pc.script.create('game', function (context) {
 	var moveCount;
 	var lastPosition;
 	var dtSincePlayerMoved = 0;
-	var SEE_EVERYTHING = false;
+	var SEE_EVERYTHING = true;
 	var MANUAL_MOVE = false;
 	var SECONDS_BETWEEN_MOVES = 0.5;
 	var creatures = [];
@@ -57,7 +57,8 @@ pc.script.create('game', function (context) {
         	player = context.root.findByName('Player');
         	goal = context.root.findByName('Goal');
 	        camera  = context.root.findByName('Camera');
-	        zombieModel  = context.root.findByName('Zombie');
+	        //zombieModel  = context.root.findByName('Zombie');
+	        zombieModel = player;
         	
         	debugOutput = createDiv('debugOutput', '2%', '5%');
         	debugOutput.innerHTML = "---";
@@ -87,7 +88,7 @@ pc.script.create('game', function (context) {
         	this.updatePlayerPosition();
         	lastPosition = pc.math.vec2.clone(playerPos);
 
-        	levelCreation.placeAtCell(zombieModel, playerPos[0]-1, playerPos[1]);
+        	levelCreation.placeAtCell(levelCreation.cloneEntity(zombieModel), playerPos[0]-1, playerPos[1]);
         	
         	moveCount = 0;        	
         },
@@ -255,7 +256,9 @@ pc.script.create('game', function (context) {
 				}
 			}
 			this.movePlayerPosition();
-			var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 150, 150, playerPos[1]*10 - 150);
+//			var targetCameraPos = pc.math.vec3.create(playerPos[0]*10 - 150, 150, playerPos[1]*10 - 150);
+			var playerPosition = player.getPosition();
+			var targetCameraPos = pc.math.vec3.create(playerPosition[0]+100, 150, playerPosition[2]+100);
 			var cameraPos = camera.getLocalPosition();
 			var r = pc.math.vec3.create();
 			pc.math.vec3.subtract(cameraPos, targetCameraPos, r);
@@ -263,7 +266,7 @@ pc.script.create('game', function (context) {
 				pc.math.vec3.lerp(cameraPos, targetCameraPos, 0.04, r);
 				camera.setLocalPosition(r);
 			}
-// 			debugOutput.innerHTML = "Player: "+vecToString(playerPos)+" Camera: "+vecToString(cameraPos);
+ 			// debugOutput.innerHTML = "Player: "+vecToString(playerPosition)+" Camera: "+vecToString(cameraPos);
         },
     };
 

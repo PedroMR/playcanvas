@@ -68,33 +68,47 @@ pc.script.create('levelCreation', function (context) {
         renderSeenCells: function() {
             for (var z=0; z < ROWS; z++) {
 	            for (var x=0; x < COLS; x++) {
-	            	var visible = level.hasSeenCell(x, z);
+	            	var visible = true;//level.hasSeenCell(x, z);
 	            	if (!visible)
 	            		continue;
 					if (renderedCells[z][x]) {
-		            	var colour = level.isCellInSight(x, z) ? "0xe4baba" : "0x543a3a";
-						var tile = renderedCells[z][x];
-						if (tile && tile.primitive)
-						  tile.primitive.color = colour;
+                        var colour = "0x3a2a2a";
+                        if (level.isCellInSight(x, z))
+                            colour = "0xe4baba";
+                        else if (level.hasSeenCell(x, z))
+                            colour = "0x644a4a";
+						var cell = renderedCells[z][x];
+                        var tile;
+                        if (cell) {
+                            for (var i = cell.length - 1; i >= 0; i--) {
+                                var obj = cell[i];
+                                if (obj && obj.primitive)
+                                    obj.primitive.color = colour;
+                            };
+                        }
 						continue;
 					}
 					renderedCells[z][x] = true;
 					
 	            	if (level.getCellType(x, z) == HOLLOW) {
-		            	renderedCells[z][x] = this.addTile(x, z, 0);
+                        var cell = []
+		            	renderedCells[z][x] = cell; 
+                        cell.push(this.addTile(x, z, 0));
 		            	if (level.getCellType(x+1, z) != HOLLOW)
-		            		this.addWall(x+1, z+1, 1, true, false);
+		            		cell.push(this.addWall(x+1, z+1, 1, true, false));
 		            	if (level.getCellType(x-1, z) != HOLLOW)
-		            		this.addWall(x, z+1, 1, true, true);
+		            		cell.push(this.addWall(x, z+1, 1, true, true));
 		            	if (level.getCellType(x, z-1) != HOLLOW)
-		            		this.addWall(x, z, 1, false, true);
+		            		cell.push(this.addWall(x, z, 1, false, true));
 		            	if (level.getCellType(x, z+1) != HOLLOW)
-		            		this.addWall(x, z+1, 1, false, false);
+		            		cell.push(this.addWall(x, z+1, 1, false, false));
 		            }
 	            }
             }
             
         },
+
+        cloneEntity: cloneEntity,
         
         getLevel:function() {
 			return level;
@@ -135,6 +149,8 @@ pc.script.create('levelCreation', function (context) {
             newWall.translateLocal(rootScale[0]/2, 0, rootScale[2]/2);
             
             rootWallContainer.addChild(newWall);
+
+            return newWall;
         },
         
         update: function (dt) {
