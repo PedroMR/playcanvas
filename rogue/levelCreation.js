@@ -10,13 +10,24 @@ pc.script.create('levelCreation', function (context) {
     var ROWS = 50;
     var COLS = 50;
     var MAX_ROOMS = 20;
-    
+    var picker;
+    var pickScene;
+    var camera;
+
     var UNDEFINED = 1;
     var HOLLOW = 0;
     var BLOCKED = 2;
            
     var LevelCreation = function (entity) {
         this.entity = entity;
+    };
+
+    var vecToString = function(vec) {
+        var str = "";
+        for (var i=0; i < vec.length; i++) {
+            str += (i>0 ? ", " : "")+vec[i];
+        }
+        return str;
     };
     
 	var convertCellToWorld = function(col, row) {
@@ -46,8 +57,11 @@ pc.script.create('levelCreation', function (context) {
             rootWallContainer = context.root.findByName(ROOT_WALL_CONTAINER);
             rootTile = context.root.findByName('Tile0');
             rootTileContainer = context.root.findByName('Tiles');
+            picker = new pc.scene.Picker(500, 500);
+            camera  = context.root.findByName('Camera');
+
         },
-        
+
         resetMaze:function() {
             this.createMaze();
             
@@ -61,22 +75,45 @@ pc.script.create('levelCreation', function (context) {
             	node.destroy();
             }
             
+            pickScene = new pc.scene.Scene();
+
             renderedCells = level.createCellArray(false);
             this.renderSeenCells();
         },
         
+        pickTile: function(event) {
+            var selection = picker.getSelection({
+              x: event.x,
+              y: event.y//picker.getHeight() - event.y
+            });
+
+            console.log("pick selection has "+selection.length+" items");
+
+            if (selection.length > 0) {
+                var mesh = selection[0];
+                var node = mesh.node;
+                var parent = node.getParent();
+                if (parent && parent.primitive) {
+                    console.log("picked obj at "+vecToString(parent.getPosition()));
+                    parent.primitive.color = "0xFF00FF";
+                }
+            }
+        },
+
         renderSeenCells: function() {
+            var tilesAdded = 0;
+
             for (var z=0; z < ROWS; z++) {
 	            for (var x=0; x < COLS; x++) {
 	            	var visible = true;//level.hasSeenCell(x, z);
 	            	if (!visible)
 	            		continue;
 					if (renderedCells[z][x]) {
-                        var colour = "0x3a2a2a";
+                        var colour = "0x444444";
                         if (level.isCellInSight(x, z))
                             colour = "0xe4baba";
                         else if (level.hasSeenCell(x, z))
-                            colour = "0x644a4a";
+                            colour = "0x745a5a";
 						var cell = renderedCells[z][x];
                         var tile;
                         if (cell) {
@@ -93,6 +130,7 @@ pc.script.create('levelCreation', function (context) {
 	            	if (level.getCellType(x, z) == HOLLOW) {
                         var cell = []
 		            	renderedCells[z][x] = cell; 
+                        tilesAdded++;
                         cell.push(this.addTile(x, z, 0));
 		            	if (level.getCellType(x+1, z) != HOLLOW)
 		            		cell.push(this.addWall(x+1, z+1, 1, true, false));
@@ -105,7 +143,9 @@ pc.script.create('levelCreation', function (context) {
 		            }
 	            }
             }
-            
+
+            if (tilesAdded > 0)
+                picker.prepare(camera.camera.camera, context.scene);            
         },
 
         cloneEntity: cloneEntity,
@@ -120,6 +160,7 @@ pc.script.create('levelCreation', function (context) {
             var rootScale = rootTile.getLocalScale();
             this.placeAtCell(newTile, x, z);
             rootTileContainer.addChild(newTile);
+            pickScene.addModel(newTile.primitive.model);
             return newTile;
         },
         

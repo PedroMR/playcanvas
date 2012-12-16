@@ -50,6 +50,10 @@ pc.script.create('game', function (context) {
 		return div;
 	};
 
+	var onMouseDown = function (e) {
+		var tile = levelCreation.pickTile(e);
+	};
+
     Game.prototype = {    	
         initialize: function () {
 			container = document.getElementById('application-container');
@@ -68,7 +72,8 @@ pc.script.create('game', function (context) {
         	distanceOutput.style.color = 'yellow';
         	distanceOutput.innerHTML = "";
         	
-        	
+        	context.mouse.bind('mousedown', onMouseDown );
+
         	this.newGame();
         },
         
@@ -90,7 +95,7 @@ pc.script.create('game', function (context) {
 
         	levelCreation.placeAtCell(levelCreation.cloneEntity(zombieModel), playerPos[0]-1, playerPos[1]);
         	
-        	moveCount = 0;        	
+        	moveCount = 0;
         },
         
         updatePlayerPosition: function()
