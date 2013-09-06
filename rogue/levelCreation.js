@@ -95,7 +95,7 @@ pc.script.create('levelCreation', function (context) {
                 var parent = node.getParent();
                 if (parent && parent.primitive) {
                     console.log("picked obj at "+vecToString(parent.getPosition()));
-                    parent.primitive.color = "0xFF00FF";
+                    parent.primitive.color = new pc.Color(1, 0, 1);
                 }
             }
         },
@@ -109,11 +109,11 @@ pc.script.create('levelCreation', function (context) {
 	            	if (!visible)
 	            		continue;
 					if (renderedCells[z][x]) {
-                        var colour = "0x444444";
+                        var colour = new pc.Color(68/255, 68/255, 68/255);
                         if (level.isCellInSight(x, z))
-                            colour = "0xe4baba";
+                            colour = new pc.Color(228/255, 186/255, 11/255);
                         else if (level.hasSeenCell(x, z))
-                            colour = "0x745a5a";
+                            colour = new pc.Color(116/255, 90/255, 90/255);
 						var cell = renderedCells[z][x];
                         var tile;
                         if (cell) {
