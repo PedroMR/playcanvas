@@ -57,7 +57,7 @@ pc.script.create('levelCreation', function (context) {
             rootWallContainer = context.root.findByName(ROOT_WALL_CONTAINER);
             rootTile = context.root.findByName('Tile0');
             rootTileContainer = context.root.findByName('Tiles');
-            picker = new pc.scene.Picker(500, 500);
+            picker = new pc.scene.Picker(context.graphicsDevice, 500, 500);
             camera  = context.root.findByName('Camera');
 
         },
