@@ -33,23 +33,6 @@ pc.script.create('levelCreation', function (context) {
 	var convertCellToWorld = function(col, row) {
 		return pc.math.vec3.create(col*CELL_TO_WORLD, 0, row*CELL_TO_WORLD);
 	};
-        
-    var cloneEntity = function (original) {
-    	var newEntity = new pc.fw.Entity();
-    	
-    	newEntity.setLocalPosition(original.getLocalPosition());  	
-    	newEntity.setLocalRotation(original.getLocalRotation());  	
-    	newEntity.setLocalScale(original.getLocalScale());
-
-		if (original.primitive) {
-			context.systems.primitive.addComponent(newEntity, original.primitive.data);
-		}
-		if (original.script) {
-			context.systems.script.addComponent(newEntity, original.script.data);
-		}
-		
-		return newEntity;
-    };
 
     LevelCreation.prototype = {
         initialize: function () {
@@ -148,16 +131,12 @@ pc.script.create('levelCreation', function (context) {
                 picker.prepare(camera.camera.camera, context.scene);            
         },
 
-        cloneEntity: cloneEntity,
-        
         getLevel:function() {
 			return level;
         },
         
         addTile: function(x, z, height) {
-        	var newTile = cloneEntity(rootTile);
-            var rootY = rootTile.getLocalPosition()[1];
-            var rootScale = rootTile.getLocalScale();
+        	var newTile = rootTile.clone();
             this.placeAtCell(newTile, x, z);
             rootTileContainer.addChild(newTile);
             pickScene.addModel(newTile.primitive.model);
@@ -173,9 +152,7 @@ pc.script.create('levelCreation', function (context) {
 		},
                 
         addWall: function(x, z, length, vertical, high) {
-            var newWall = cloneEntity(rootWall);
- 
-            var rootY = rootWall.getLocalPosition()[1];
+            var newWall = rootWall.clone();
             var rootScale = rootWall.getLocalScale();
             this.placeAtCell(newWall, x-0.5, z-0.5);
             if (vertical)
