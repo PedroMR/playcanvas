@@ -93,7 +93,7 @@ pc.script.create('game', function (context) {
         	this.updatePlayerPosition();
         	lastPosition = pc.math.vec2.clone(playerPos);
 
-        	levelCreation.placeAtCell(levelCreation.cloneEntity(zombieModel), playerPos[0]-1, playerPos[1]);
+        	levelCreation.placeAtCell(zombieModel.clone(), playerPos[0]-1, playerPos[1]);
         	
         	moveCount = 0;
         },
