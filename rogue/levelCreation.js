@@ -18,6 +18,12 @@ pc.script.create('levelCreation', function (context) {
     var HOLLOW = 0;
     var BLOCKED = 2;
            
+    var colours = {
+        unexplored: new pc.Color(68/255, 68/255, 68/255),
+        visible: new pc.Color(228/255, 186/255, 11/255),
+        explored: new pc.Color(116/255, 90/255, 90/255)
+    };
+
     var LevelCreation = function (entity) {
         this.entity = entity;
     };
@@ -92,18 +98,22 @@ pc.script.create('levelCreation', function (context) {
 	            	if (!visible)
 	            		continue;
 					if (renderedCells[z][x]) {
-                        var colour = new pc.Color(68/255, 68/255, 68/255);
+                        var colour = colours.unexplored;
                         if (level.isCellInSight(x, z))
-                            colour = new pc.Color(228/255, 186/255, 11/255);
+                            colour = colours.visible;
                         else if (level.hasSeenCell(x, z))
-                            colour = new pc.Color(116/255, 90/255, 90/255);
+                            colour = colours.explored;
 						var cell = renderedCells[z][x];
                         var tile;
                         if (cell) {
                             for (var i = cell.length - 1; i >= 0; i--) {
                                 var obj = cell[i];
-                                if (obj && obj.primitive)
-                                    obj.primitive.color = colour;
+                                if (obj && obj.primitive){
+                                    var c = obj.primitive.color;
+                                    if (!((c.r === colour.r) && (c.g === colour.g) && (c.b === colour.b))) {
+                                        obj.primitive.color = colour;
+                                    }
+                                }
                             };
                         }
 						continue;
