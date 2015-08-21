@@ -48,7 +48,7 @@ pc.script.create('game', function (context) {
 
     Game.prototype = {        
         initialize: function () {
-            container = document.getElementById('application-container');
+            container = document.body;
             
             player = context.root.findByName('Player');
             goal = context.root.findByName('Goal');
@@ -69,7 +69,7 @@ pc.script.create('game', function (context) {
         },
         
         newGame: function() {
-            levelCreation = this.entity.script.send('levelCreation', 'getLevelCreation');
+            levelCreation = this.entity.script.levelCreation.getLevelCreation();
             levelCreation.resetMaze();
             level = levelCreation.getLevel();
             
